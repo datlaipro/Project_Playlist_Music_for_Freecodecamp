@@ -1,4 +1,5 @@
 // Project start 18/2/2025
+const buttonReset = document.getElementById("reset");
 const playerMusic = document.getElementById("myAudio");
 const buttonPlay = document.getElementById("play-music");
 const skipNext = document.getElementById("skip_next");
@@ -6,7 +7,6 @@ const undoTheSong = document.getElementById("undo-the-song");
 const repeatSong = document.getElementById("repeat");
 const musicScore = document.getElementById("score-music");
 const songIsPlaying = document.getElementById("list");
-const playingMusic = document.querySelectorAll(".color")
 const clearMusic = document.querySelectorAll(".material-icons");
 const clearMusices = document.querySelectorAll(".clear");
 const playMusicc = document.getElementById("playlist-music");
@@ -27,10 +27,12 @@ var mang = [
 
 ];
 
-var arrayLength = mang.length;
+var newArray = [...mang];
+
+var newArray1;
 
 
-mang.forEach(function (song, index) {
+mang.forEach(function (song) {
     var li = document.createElement("li"); // Tạo một thẻ <li>
 
     var span = document.createElement("button"); // Tạo một thẻ <button> chứa tên bài hát
@@ -40,22 +42,21 @@ mang.forEach(function (song, index) {
 
     // Xử lý khi click vào bài hát
     span.onclick = function () {
-        playMusic(mang[index].url);
+        playMusic(song.url);
 
         // Tìm bài hát hiện tại đang phát và xóa màu nền
         let currentPlaying = document.querySelector(".playing");
         if (currentPlaying) {
             currentPlaying.classList.remove("playing");
             currentPlaying.style.backgroundColor = ""; // Reset màu nền
-            
         }
 
         // Đánh dấu bài hát mới đang phát
         span.classList.add("playing");
         span.style.backgroundColor = "#556b2f";
-        i=index;
-        // Hiển thị tên bài hát đang phát
-        songIsPlaying.innerText = mang[index].name;
+        i = mang.findIndex(item => item.name === song.name); // Đánh dấu vị trí bài hát đang phát
+
+        songIsPlaying.innerText = song.name;
     };
 
     var deleteBtn = document.createElement("button"); // Tạo nút "Xóa"
@@ -64,16 +65,7 @@ mang.forEach(function (song, index) {
 
     // Gán sự kiện xóa cho nút "Xóa"
     deleteBtn.addEventListener("click", function () {
-        li.remove(); // Xóa phần tử HTML
-
-        // Cập nhật lại mảng bằng cách loại bỏ bài hát có cùng tên
-        mang = mang.filter(function(item) {
-            return item.name !== song.name;
-        });
-
-        playerMusic.pause();
-        buttonPlay.innerHTML = '<i class="bi bi-play"></i>';
-        console.log(mang);
+        deleteMusic(mang, song.name, li);
     });
 
     // Thêm nội dung vào thẻ <li>
@@ -83,6 +75,70 @@ mang.forEach(function (song, index) {
     // Thêm <li> vào danh sách <ul>
     playMusicc.appendChild(li);
 });
+
+// Hàm xóa bài hát
+function deleteMusic(mang, songName, li) {
+
+    // Xóa phần tử HTML khỏi danh sách
+    li.remove();
+
+    // Cập nhật lại mảng bằng cách loại bỏ bài hát có tên tương ứng
+    let newMang = mang.filter(item => item.name !== songName);
+    mang.length = 0; // Xóa tất cả phần tử của mảng cũ
+    newMang.forEach(item => mang.push(item)); // Cập nhật lại mảng ban đầu
+
+
+
+    if (mang.length === 0) {// Nếu danh sách trống, thêm nút reset
+
+
+        let resetListMusic = document.createElement("button");
+        resetListMusic.textContent = "reset";
+        resetListMusic.style.color = "red";
+        buttonReset.appendChild(resetListMusic);
+
+        // Khi nhấn reset, khôi phục danh sách bài hát
+        resetListMusic.onclick = function () {
+            newArray1 = [...newArray]
+
+            playMusicc.innerHTML = newArray1.map(song =>
+                `<li>
+                    <button onclick="
+                        playMusic('${song.url}'); 
+                        songIsPlaying.innerText='${song.name}';
+            
+                        let currentPlaying = document.querySelector('.playing');
+                        if (currentPlaying) {
+                            currentPlaying.classList.remove('playing');
+                            currentPlaying.style.backgroundColor = ''; // Reset màu nền
+                        }
+            
+                        let span = this.querySelector('span'); // Lấy phần tử <span> trong nút
+                        span.classList.add('playing');
+                        span.style.backgroundColor = '#556b2f';
+            
+                        i = newArray1.findIndex(item => item.name === '${song.name}'); // Đánh dấu vị trí bài hát đang phát
+                    ">
+                        <span class="color">${song.name}</span>
+                    </button>
+                    <button style="color: red;" onclick="deleteMusic(newArray1, '${song.name}', this.parentElement)">
+                        xóa
+                    </button>
+                </li>`
+            ).join("");
+            songIsPlaying.innerText="";
+            skipMusic(newArray1);
+            undoTheMusic(newArray1);
+
+            resetListMusic.remove(); // Xóa nút reset sau khi nhấn
+        };
+    }
+
+    // Dừng nhạc nếu bài hát bị xóa
+    playerMusic.pause();
+    buttonPlay.innerHTML = '<i class="bi bi-play"></i>';
+}
+
 
 
 buttonPlay.onclick = function () {
@@ -104,122 +160,63 @@ buttonPlay.onclick = function () {
 
 
 
-skipNext.onclick = function () {// hàm sử lí tiến bài hát
+function skipMusic(mang) {
 
-    i++;
-    songIsPlaying.innerText = mang[i].name;
-    playMusic(mang[i].url);// chọn bài hát ở vị trí tương ứng để phát(phải cập nhật trạng thái bài hát trong điều kiện if này vì trạng thái ở ngoài khác với trong if)
-    clearMusices[i].style.backgroundColor = "#556b2f";
-    clearMusices[i - 1].style.backgroundColor = "";// khi next bài hát tiếp theo thì bài vừa xong sẽ trở lại màu bình thường
+
+    skipNext.onclick = function () {// hàm sử lí tiến bài hát
+        if (i + 1 >= mang.length) {// nếu click vượt quá danh sách bài hát thì chặn bị trùng lặp
+            return;
+
+        } else {
+            i++;
+            const playingMusic = document.querySelectorAll(".color")//sau khi xóa đi bài hát trên danh sách phát thì lấy lại danh sách bài hát đã được cập nhật
+
+
+            songIsPlaying.innerText = mang[i].name;
+            playMusic(mang[i].url);// chọn bài hát ở vị trí tương ứng để phát(phải cập nhật trạng thái bài hát trong điều kiện if này vì trạng thái ở ngoài khác với trong if)
+            let currentPlayingg = document.querySelector(".playing");
+            if (currentPlayingg) {
+                currentPlayingg.classList.remove("playing");
+                currentPlayingg.style.backgroundColor = ""; // Reset màu nền
+
+            }
+            playingMusic[i].classList.add("playing");
+            playingMusic[i].style.backgroundColor = "#556b2f";
+
+        }
+
+
+
+    }
 }
-// // // if (tam == 0) {// điều kiện này để khi  bắt đầu chưa chọn bài hát mà bấm nút |<< sẽ bị chặn lại (nếu không chặn thì phải click nút >>| bù lại lượng click thừa ra )
-// // //     undoTheSong.onclick = function () {
-// // //         buttonPlay.innerHTML = '<i class="bi bi-play"></i>';
-// // //     }
-// // // } else {}
+skipMusic(mang);
+
+function undoTheMusic(mang) {
 
 
+    undoTheSong.onclick = function () {// hàm sử lí lùi bài hát
+        if (i - 1 < 0) {
+            return;
+        }
+        const playingMusic = document.querySelectorAll(".color")//sau khi xóa đi bài hát trên danh sách phát thì lấy lại danh sách bài hát đã được cập nhật
 
-// // for (let n = 0; n < mang.length; n++) {
-// //     if (mang[n] == "") {
-// //         mang.splice(n, 1);
-// //         // i--
-// //         // tam4--;
-// //         // songIsPlaying.innerText = mang[i].name;
-// //         // playMusic(mang[i].url);// chọn bài hát ở vị trí tương ứng để phát(phải cập nhật trạng thái bài hát trong điều kiện if này vì trạng thái ở ngoài khác với trong if)
-// //         // clearMusices[i].style.backgroundColor = "#556b2f";
-// //         // clearMusices[i + 1].style.backgroundColor = "";// khi next bài hát tiếp theo thì bài vừa xong sẽ trở lại màu bình thường
+        i-- // khi chọn bài bằng nút |<< thì tác dụng làm cho vị trí bài hát đồng bộ với nhau 
 
-// //     }
+        songIsPlaying.innerText = mang[i].name;
+        playMusic(mang[i].url);// chọn bài hát ở vị trí tương ứng để phát(phải cập nhật trạng thái bài hát trong điều kiện if này vì trạng thái ở ngoài khác với trong if)
+        let currentPlayingg = document.querySelector(".playing");
+        if (currentPlayingg) {
+            currentPlayingg.classList.remove("playing");
+            currentPlayingg.style.backgroundColor = ""; // Reset màu nền
 
+        }
 
-
-
-// // }
-
-
-
-
-// undoTheSong.onclick = function () {// hàm sử lí lùi bài hát
-
-
-//     // alert(tam3)
-
-
-//     i-- // khi chọn bài bằng nút |<< thì tác dụng làm cho vị trí bài hát đồng bộ với nhau 
-
-//     songIsPlaying.innerText = mang[i].name;
-//     playMusic(mang[i].url);// chọn bài hát ở vị trí tương ứng để phát(phải cập nhật trạng thái bài hát trong điều kiện if này vì trạng thái ở ngoài khác với trong if)
-//     clearMusices[i].style.backgroundColor = "#556b2f";
-//     clearMusices[i + 1].style.backgroundColor = "";// khi next bài hát tiếp theo thì bài vừa xong sẽ trở lại màu bình thường
-
-//     if (tam2 < 0) {
-//         undoTheSong.onclick = function () {// nếu click hết đến đầu danh sách bài hát thì chặn không cho click nữa (nếu không chặn thì phải click bù lại lượng click thừa ra )
-
-//         }
-
-//     }
-// }
-
-
-
-
-
-// for (let k = 0; k < mang.length; k++) { // hàm xóa bài hát
-//     clearMusic[k].onclick = function () {
-
-
-//         // Ẩn bài hát trong giao diện
-
-//         // clearMusices[k].style.display = "none";
-
-//         // clearMusic[k].style.display = "none";
-//         clearMusices[k].remove();
-//         clearMusic[k].remove();
-//         // Nếu bài hát đang phát bị xóa, dừng nhạc
-//         // if (currentIndex === k) {
-//         //     songIsPlaying.innerText = "";
-//         //     buttonPlay.innerHTML = '<i class="bi bi-play"></i>';
-//         //     playerMusic.pause();
-//         // }
-//         songIsPlaying.innerText = "";
-//         buttonPlay.innerHTML = '<i class="bi bi-play"></i>';
-//         playerMusic.pause();
-
-//         // Xóa phần tử khỏi mảng
-//         mang.splice(k, 1);
-
-//         console.log(mang);
-//         // i=k;
-//         // clearMusic.splice(k, 1);
-//         // clearMusices.splice(k, 1);
-
-//         // // Cập nhật chỉ số bài hát đang phát
-//         // if (currentIndex > k) {
-//         //     currentIndex--; // Nếu bài trước bài đang phát bị xóa, cập nhật chỉ số
-//         // } else if (currentIndex >= mang.length) {
-//         //     currentIndex = 0; // Nếu xóa bài cuối, quay về bài đầu
-//         // }
-//     };
-
-// }
-
-
-// for (let m = 0; m < mang.length; m++) {// xử lí khi nhấn trực tiếp vào bài hát để phát 
-
-//     playingMusic[m].onclick = function () {
-//         playMusic(mang[m].url);
-//         clearMusices[m].style.backgroundColor = "#556b2f";
-//         songIsPlaying.innerText = mang[m].name;
-//         i = m;
-
-
-//     }
-// }
-// // mang.splice(tam3,1);
-
-
-
+        // Đánh dấu bài hát mới đang phát
+        playingMusic[i].classList.add("playing");
+        playingMusic[i].style.backgroundColor = "#556b2f";
+    }
+}
+undoTheMusic(mang);
 function playMusic(songname) { // hàm sử lí phát nhạc
     playerMusic.src = songname
     if (playerMusic.paused) {
@@ -230,4 +227,36 @@ function playMusic(songname) { // hàm sử lí phát nhạc
         playerMusic.pause();
         buttonPlay.innerHTML = '<i class="bi bi-play"></i>';// do có thư viện bottrap icon nên không cần định nghĩa trước các thuộc tính innerHtml;
     }
+}
+repeatSong.onclick = function randomSong() {
+    mang.sort(() => Math.random() - 0.5);
+    playMusicc.innerHTML = mang.map(song =>
+        `<li>
+            <button onclick="
+                playMusic('${song.url}'); 
+                songIsPlaying.innerText='${song.name}';
+    
+                let currentPlaying = document.querySelector('.playing');
+                if (currentPlaying) {
+                    currentPlaying.classList.remove('playing');
+                    currentPlaying.style.backgroundColor = ''; // Reset màu nền
+                }
+    
+                let span = this.querySelector('span'); // Lấy phần tử <span> trong nút
+                span.classList.add('playing');
+                span.style.backgroundColor = '#556b2f';
+    
+                i = mang.findIndex(item => item.name === '${song.name}'); // Đánh dấu vị trí bài hát đang phát
+            ">
+                <span class="color">${song.name}</span>
+            </button>
+            <button style="color: red;" onclick="deleteMusic(mang, '${song.name}', this.parentElement)">
+                xóa
+            </button>
+        </li>`
+    ).join("");
+    skipMusic(mang);
+    undoTheMusic(mang);
+    playerMusic.pause();
+    songIsPlaying.innerText="";
 }
