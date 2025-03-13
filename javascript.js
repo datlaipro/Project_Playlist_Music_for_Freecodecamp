@@ -5,9 +5,9 @@ const buttonPlay = document.getElementById("play-music");
 const skipNext = document.getElementById("skip_next");
 const undoTheSong = document.getElementById("undo-the-song");
 const repeatSong = document.getElementById("repeat");
-const musicScore = document.getElementById("score-music");
+
 const songIsPlaying = document.getElementById("list");
-const clearMusic = document.querySelectorAll(".material-icons");
+
 const clearMusices = document.querySelectorAll(".clear");
 const playMusicc = document.getElementById("playlist-music");
 var i = 0;
