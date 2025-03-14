@@ -126,10 +126,10 @@ function deleteMusic(mang, songName, li) {
                     </button>
                 </li>`
             ).join("");
-            songIsPlaying.innerText="";
+            songIsPlaying.innerText = "";
             skipMusic(newArray1);
             undoTheMusic(newArray1);
-
+            repeatMusic(newArray1);
             resetListMusic.remove(); // Xóa nút reset sau khi nhấn
         };
     }
@@ -228,10 +228,13 @@ function playMusic(songname) { // hàm sử lí phát nhạc
         buttonPlay.innerHTML = '<i class="bi bi-play"></i>';// do có thư viện bottrap icon nên không cần định nghĩa trước các thuộc tính innerHtml;
     }
 }
-repeatSong.onclick = function randomSong() {
-    mang.sort(() => Math.random() - 0.5);
-    playMusicc.innerHTML = mang.map(song =>
-        `<li>
+function repeatMusic(mang) {
+
+
+    repeatSong.onclick = function randomSong() {
+        mang.sort(() => Math.random() - 0.5);
+        playMusicc.innerHTML = mang.map(song =>
+            `<li>
             <button onclick="
                 playMusic('${song.url}'); 
                 songIsPlaying.innerText='${song.name}';
@@ -254,9 +257,12 @@ repeatSong.onclick = function randomSong() {
                 xóa
             </button>
         </li>`
-    ).join("");
-    skipMusic(mang);
-    undoTheMusic(mang);
-    playerMusic.pause();
-    songIsPlaying.innerText="";
+        ).join("");
+        skipMusic(mang);
+        undoTheMusic(mang);
+        playerMusic.pause();
+        songIsPlaying.innerText = "";
+        resetListMusic.remove(); // Xóa nút reset sau khi nhấn
+    }
 }
+repeatMusic(mang)
